@@ -48,8 +48,8 @@ async function checkRateLimit(
 }
 
 // Simple proxy function
-async function proxyRequest(upstream: string, req: any, reply: any): Promise<void> {
-  const url = `${upstream}${req.url}`;
+async function proxyRequest(upstream: string, targetPath: string, req: any, reply: any): Promise<void> {
+  const url = `${upstream}${targetPath}`;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
 
@@ -145,9 +145,9 @@ for (const route of routes) {
       // Rewrite path: strip route prefix
       const originalUrl = req.url as string;
       const pathPrefix = route.path;
-      (req as any).url = originalUrl.replace(pathPrefix, '') || '/';
+      const targetPath = originalUrl.replace(pathPrefix, '') || '/';
 
-      await proxyRequest(upstream, req, reply);
+      await proxyRequest(upstream, targetPath, req, reply);
       cb?.recordSuccess();
       const status = reply.statusCode.toString();
       requestsTotal.inc({ route: route.id, status, method: req.method });
